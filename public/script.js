@@ -1,35 +1,30 @@
-const API_URL = "https://clashofclans-tool-production.up.railway.app";
+async function ladeClanMitglieder() {
+    const clanTag = document.getElementById("clanTag").value.replace("#", "");
+    if (!clanTag) return alert("Bitte Clantag eingeben!");
 
-function ladeClanMitglieder() {
-    const clanTag = document.getElementById("clanTag").value.replace("#", "%23");
+    const url = `/clan/${clanTag}`;
 
-    fetch(`${API_URL}/clan/${clanTag}`)
-        .then((response) => response.json())
-        .then((data) => {
-            if (data.error) {
-                alert(`Fehler: ${data.error}`);
-            } else {
-                console.log("📡 Clan-Daten:", data);
-                displayClanData(data);
-            }
-        })
-        .catch((error) => console.error("❌ Fehler:", error));
-}
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
 
-function displayClanData(data) {
-    const tbody = document.querySelector("#memberTable tbody");
-    tbody.innerHTML = "";
+        if (data.error) {
+            alert(`Fehler: ${data.error}`);
+            return;
+        }
 
-    data.memberList.forEach((member) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td>${member.name}</td>
-            <td>${member.role}</td>
-            <td>${member.trophies}</td>
-            <td>${member.donationsReceived}</td>
-            <td><input type="text" placeholder="Notiz"></td>
-            <td><button>Speichern</button></td>
-        `;
-        tbody.appendChild(row);
-    });
+        const tbody = document.querySelector("#memberTable tbody");
+        tbody.innerHTML = "";
+
+        data.memberList.forEach(member => {
+            const row = tbody.insertRow();
+            row.insertCell(0).textContent = member.name;
+            row.insertCell(1).textContent = member.role;
+            row.insertCell(2).textContent = member.trophies;
+            row.insertCell(3).textContent = `${member.lastSeen}`;
+            row.insertCell(4).innerHTML = `<button onclick="kickMember('${member.tag}')">Kick</button>`;
+        });
+    } catch (error) {
+        alert("Fehler beim Abrufen der Clan-Daten.");
+    }
 }
