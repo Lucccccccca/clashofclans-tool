@@ -1,15 +1,14 @@
 const express = require("express");
 const path = require("path");
 const Database = require("better-sqlite3");
-const db = new Database("./clan_notes.db", { verbose: console.log });
 const cors = require("cors");
 require("dotenv").config();
 
-// 📌 fetch-Funktion für Node.js importieren
-const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+// 📌 SQLite-Datenbank mit `better-sqlite3` öffnen (Railway-kompatibel)
+const db = new Database("./clan_notes.db", { verbose: console.log });
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
@@ -23,12 +22,6 @@ app.get("/", (req, res) => {
 });
 
 const API_KEY = process.env.COC_API_KEY;
-
-// 📌 SQLite Datenbank für Notizen initialisieren
-const db = new sqlite3.Database("./clan_notes.db", (err) => {
-    if (err) console.error("❌ Datenbank-Fehler:", err);
-    db.run("CREATE TABLE IF NOT EXISTS notes (tag TEXT PRIMARY KEY, note TEXT)");
-});
 
 // 📌 Offline-Zeit berechnen
 function berechneOfflineZeit(lastSeen) {
@@ -73,19 +66,14 @@ app.get("/api/members", async (req, res) => {
         }));
 
         // 📌 Notizen aus der Datenbank abrufen
-        db.all("SELECT * FROM notes", [], (err, rows) => {
-            if (err) {
-                console.error("❌ Fehler beim Abrufen der Notizen:", err);
-                return res.status(500).json({ error: "Fehler beim Abrufen der Notizen." });
-            }
+        const notes = db.prepare("SELECT * FROM notes").all();
 
-            members.forEach(member => {
-                let noteEntry = rows.find(row => row.tag === member.tag);
-                if (noteEntry) member.note = noteEntry.note;
-            });
-
-            res.json(members);
+        members.forEach(member => {
+            let noteEntry = notes.find(row => row.tag === member.tag);
+            if (noteEntry) member.note = noteEntry.note;
         });
+
+        res.json(members);
 
     } catch (error) {
         console.error("❌ Fehler beim Abrufen der Clan-Daten:", error);
@@ -97,14 +85,10 @@ app.get("/api/members", async (req, res) => {
 app.post("/api/saveNote", (req, res) => {
     const { tag, note } = req.body;
 
-    db.run("INSERT INTO notes (tag, note) VALUES (?, ?) ON CONFLICT(tag) DO UPDATE SET note=?", 
-        [tag, note, note], (err) => {
-        if (err) {
-            console.error("❌ Fehler beim Speichern der Notiz:", err);
-            return res.status(500).json({ error: "Fehler beim Speichern der Notiz." });
-        }
-        res.json({ message: "Notiz gespeichert!" });
-    });
+    const stmt = db.prepare("INSERT INTO notes (tag, note) VALUES (?, ?) ON CONFLICT(tag) DO UPDATE SET note=?");
+    stmt.run(tag, note, note);
+
+    res.json({ message: "Notiz gespeichert!" });
 });
 
 // 📌 Server starten
