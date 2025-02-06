@@ -1,20 +1,24 @@
 import express from "express";
 import dotenv from "dotenv";
 import fetch from "node-fetch";
+import path from "path";
 
-dotenv.config(); // Lädt Umgebungsvariablen aus .env
+dotenv.config(); // Lädt Umgebungsvariablen
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const PROXY_URL = process.env.PROXY_URL; // Deine Render-Proxy URL
-const API_KEY = process.env.API_KEY; // Clash of Clans API Key
+const PROXY_URL = process.env.PROXY_URL; // Proxy URL (Render)
+const API_KEY = process.env.API_KEY; // Clash of Clans API-Key
 
-// 🏠 Startseite
+// 📂 Statische Dateien bereitstellen
+app.use(express.static(path.join(process.cwd(), "public")));
+
+// 🏠 Startseite (Frontend)
 app.get("/", (req, res) => {
-    res.send("🔥 Clash of Clans Tool mit Railway & Render Proxy läuft!");
+    res.sendFile(path.join(process.cwd(), "public", "index.html"));
 });
 
-// 🏆 Clan-Daten über den Render-Proxy abrufen
+// 🏆 Clan-Daten über den Proxy abrufen
 app.get("/clan/:tag", async (req, res) => {
     try {
         const clanTag = encodeURIComponent(req.params.tag);
@@ -22,10 +26,7 @@ app.get("/clan/:tag", async (req, res) => {
 
         console.log(`🔍 Anfrage über Proxy: ${url}`);
 
-        const response = await fetch(url, {
-            headers: { "Content-Type": "application/json" }
-        });
-
+        const response = await fetch(url, { headers: { "Content-Type": "application/json" } });
         if (!response.ok) {
             const errorData = await response.json();
             console.error("❌ Fehler von Proxy:", errorData);
@@ -40,7 +41,7 @@ app.get("/clan/:tag", async (req, res) => {
     }
 });
 
-// 🔥 Direkt auf Clash of Clans API zugreifen (z. B. für Spieler-Profile)
+// 🔥 Direkt auf Clash of Clans API zugreifen
 app.get("/player/:tag", async (req, res) => {
     try {
         const playerTag = encodeURIComponent(req.params.tag);
@@ -50,7 +51,7 @@ app.get("/player/:tag", async (req, res) => {
 
         const response = await fetch(url, {
             headers: {
-                "Authorization": `Bearer ${API_KEY}`.trim(), // API-Key ohne Leerzeichen
+                "Authorization": `Bearer ${API_KEY}`.trim(),
                 "Content-Type": "application/json"
             }
         });
@@ -58,32 +59,6 @@ app.get("/player/:tag", async (req, res) => {
         if (!response.ok) {
             const errorData = await response.json();
             console.error("❌ Fehler von Clash of Clans API:", errorData);
-            return res.status(response.status).json(errorData);
-        }
-
-        const data = await response.json();
-        res.json(data);
-    } catch (error) {
-        console.error("❌ Fehler:", error);
-        res.status(500).json({ error: "Server-Fehler", details: error.message });
-    }
-});
-
-// 📊 Clan-Kriegsstatistiken (über Proxy)
-app.get("/war/:tag", async (req, res) => {
-    try {
-        const clanTag = encodeURIComponent(req.params.tag);
-        const url = `${PROXY_URL}/war/${clanTag}`;
-
-        console.log(`🔍 Anfrage über Proxy: ${url}`);
-
-        const response = await fetch(url, {
-            headers: { "Content-Type": "application/json" }
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error("❌ Fehler von Proxy:", errorData);
             return res.status(response.status).json(errorData);
         }
 
