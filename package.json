@@ -1,8 +1,9 @@
 {
   "name": "clashofclans-tool",
   "version": "1.0.0",
-  "description": "Clash of Clans Clan Management Tool",
+  "description": "Clash of Clans Tool mit Proxy",
   "main": "server.js",
+  "type": "module",
   "scripts": {
     "start": "node server.js"
   },
