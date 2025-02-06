@@ -1,6 +1,7 @@
 const express = require("express");
 const path = require("path");
-const sqlite3 = require("sqlite3").verbose();
+const Database = require("better-sqlite3");
+const db = new Database("./clan_notes.db", { verbose: console.log });
 const cors = require("cors");
 require("dotenv").config();
 
