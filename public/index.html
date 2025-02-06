@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clash of Clans Clan-Management</title>
+    <link rel="stylesheet" href="styles.css">
+    <script defer src="script.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Clash of Clans Clan-Management</h1>
+
+        <!-- Clan-Mitglieder abrufen -->
+        <h2>Clan-Mitglieder</h2>
+        <input type="text" id="clanTag" placeholder="Clantag eingeben (z. B. #ABC123)">
+        <button onclick="ladeClanMitglieder()">Mitglieder abrufen</button>
+        
+        <table id="memberTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Rolle</th>
+                    <th>Trophäen</th>
+                    <th>Offline seit</th>
+                    <th>Notiz</th>
+                    <th>Aktion</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</body>
+</html>
